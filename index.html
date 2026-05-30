@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lakota</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="loginPage" class="page active">
+    <div class="auth-card">
+      <h1>Login</h1>
+      <p>Bitte melde dich an, um das Dashboard zu nutzen.</p>
+      <form id="loginForm">
+        <label for="loginUsername">Benutzername</label>
+        <input id="loginUsername" type="text" autocomplete="username" required />
+        <label for="loginPassword">Passwort</label>
+        <input id="loginPassword" type="password" autocomplete="current-password" required />
+        <button type="submit">Anmelden</button>
+      </form>
+      <p id="loginError" class="error"></p>
+    </div>
+  </div>
+
+  <div id="appPage" class="hidden">
+    <header class="app-header">
+      <div>
+        <h1>Lakota</h1>
+        <p id="headerSubtitle">Verwalte Mitglieder, Lagerbestand, Aufgaben, Berichte und Häuptling-Logs.</p>
+      </div>
+      <div class="user-panel">
+        <button id="notificationBell" type="button" class="notification-bell" aria-label="Mitteilungen">
+          <span class="notification-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M12 22c1.104 0 2-.896 2-2h-4c0 1.104.896 2 2 2Z" fill="currentColor" opacity="0.95"/>
+              <path d="M18 15v-5c0-3.032-2.188-5.5-5-5.5S8 6.968 8 10.5v5L6 17.5v.5h12v-.5L18 15Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M15.5 6.5a1.5 1.5 0 1 0-3 0" fill="currentColor" opacity="0.55"/>
+            </svg>
+          </span>
+          <span id="notificationCount" class="notification-badge hidden">0</span>
+        </button>
+        <button id="currentUserName" type="button" class="account-name" aria-label="Mein Konto öffnen"></button>
+        <button id="logoutButton">Abmelden</button>
+        <button id="menuToggle" class="menu-button" type="button" aria-label="Seitenmenü öffnen">☰</button>
+      </div>
+    </header>
+
+    <nav class="page-tabs">
+      <button data-page="dashboardPage" class="active">Dashboard</button>
+      <button data-page="employeesPage">Stamm</button>
+      <button data-page="inventoryPage">Lagerbestand</button>
+      <button data-page="todoPage">To-do Liste</button>
+      <button data-page="reportsPage">Berichte</button>
+      <button data-page="logPage" class="hidden">Logs</button>
+    </nav>
+
+    <div id="notificationPanel" class="notification-panel hidden">
+      <div class="notification-panel-header">
+        <span>Mitteilungen</span>
+        <button id="closeNotificationPanel" class="notification-panel-close" type="button" aria-label="Mitteilungen schließen">✕</button>
+      </div>
+      <div id="notificationList" class="notification-list"></div>
+    </div>
+
+    <div id="accountPanel" class="account-panel hidden">
+      <div class="account-panel-header">
+        <span>Mein Konto</span>
+        <button id="closeAccountPanel" class="account-panel-close" type="button" aria-label="Konto schließen">✕</button>
+      </div>
+      <div class="account-panel-content">
+        <p id="accountUserName"></p>
+        <p id="accountUserRank"></p>
+        <p id="accountUserStatus"></p>
+        <button id="openDashboardPage" type="button" class="primary">Zum Dashboard</button>
+      </div>
+    </div>
+
+    <div id="topNav" class="top-nav hidden">
+      <div class="top-nav-inner">
+        <div class="top-nav-header">
+          <span>Seiten</span>
+          <button id="closeTopNav" class="top-nav-close" type="button" aria-label="Navigation schließen">✕</button>
+        </div>
+        <div class="top-nav-list">
+          <button data-page="dashboardPage" class="active">Dashboard</button>
+          <button data-page="employeesPage">Stamm</button>
+          <button data-page="inventoryPage">Lagerbestand</button>
+          <button data-page="todoPage">To-do Liste</button>
+          <button data-page="reportsPage">Berichte</button>
+          <button data-page="logPage" class="hidden">Logs</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="layout">
+
+      <main class="content">
+        <section id="dashboardPage" class="page active">
+          <div class="dashboard-header">
+            <div>
+              <h2>Dashboard</h2>
+              <p>Übersicht über Mitglieder, Status und laufende Aktionen.</p>
+            </div>
+            <div class="dashboard-header-metrics">
+              <div class="dashboard-metric">
+                <span>Gesamt</span>
+                <strong id="employeeCount">0</strong>
+              </div>
+              <div class="dashboard-metric">
+                <span>Wach</span>
+                <strong id="dashboardOnDutyCount">0</strong>
+              </div>
+              <div class="dashboard-metric">
+                <span>Schlafen</span>
+                <strong id="dashboardOffDutyCount">0</strong>
+              </div>
+            </div>
+          </div>
+          <div class="dashboard-grid">
+            <div class="card dashboard-card-overview">
+              <h3>Übersicht</h3>
+              <p id="statusCounts">Status: -</p>
+              <div id="dashboardRankBreakdown" class="dashboard-stat-list"></div>
+            </div>
+            <div class="card dashboard-card-account">
+              <h3>Mein Konto</h3>
+              <p id="dashboardUserInfo"></p>
+              <label for="statusSelect">Status setzen</label>
+              <select id="statusSelect"></select>
+            </div>
+            <div class="card dashboard-card-messages">
+              <h3>Neueste Mitteilung</h3>
+              <div id="dashboardMessagePreview" class="dashboard-message-preview"></div>
+            </div>
+            <div class="card dashboard-card-actions">
+              <h3>Schnellaktionen</h3>
+              <div id="dashboardActionsList" class="dashboard-actions-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="employeesPage" class="page hidden">
+          <h2>Stamm</h2>
+
+          <div class="employee-actions">
+            <div>
+              <label for="employeeSelect">Mitglied wählen</label>
+              <select id="employeeSelect"></select>
+            </div>
+            <div class="action-buttons">
+              <button type="button" id="showHireForm">Hinzufügen</button>
+              <button type="button" id="showMessageForm">Mitteilung</button>
+              <button type="button" id="showPromoteForm">Befördern / Degradieren</button>
+              <button type="button" id="showFireForm">Entfernen</button>
+            </div>
+          </div>
+
+          <div class="filter-row">
+            <div>
+              <label for="employeeSearch">Suche</label>
+              <input id="employeeSearch" class="search-input" type="text" placeholder="Name oder Benutzername suchen" />
+            </div>
+            <div>
+              <label for="employeeRankFilter">Rang</label>
+              <select id="employeeRankFilter"></select>
+            </div>
+            <div>
+              <label for="employeeStatusFilter">Status</label>
+              <select id="employeeStatusFilter"></select>
+            </div>
+            <div class="filter-actions">
+              <button id="clearEmployeeFilters" type="button">Filter zurücksetzen</button>
+            </div>
+          </div>
+
+          <div class="card employee-detail">
+            <div class="employee-detail-head">
+              <div>
+                <h3>Ausgewähltes Mitglied</h3>
+                <p id="selectedEmployeeInfo">Wähle ein Mitglied, um Informationen zu sehen.</p>
+              </div>
+              <span id="selectedEmployeeBadge" class="status-pill status-wach">Status</span>
+            </div>
+            <div class="employee-detail-grid">
+              <div class="employee-detail-item">
+                <span>Rang</span>
+                <strong id="selectedEmployeeRank">-</strong>
+              </div>
+              <div id="selectedEmployeeDetails" class="employee-detail-details"></div>
+            </div>
+            <div class="employee-detail-actions">
+              <div>
+                <label for="selectedEmployeeStatus">Status</label>
+                <select id="selectedEmployeeStatus"></select>
+              </div>
+              <button type="button" id="updateSelectedStatus">Aktualisieren</button>
+            </div>
+          </div>
+
+          <div id="messageForm" class="action-form hidden">
+            <div class="action-form-header">
+              <h3>Mitteilung senden</h3>
+              <button type="button" class="action-form-close" data-close-form aria-label="Formular schließen">✕</button>
+            </div>
+            <label for="messageRecipientType">Empfänger</label>
+            <select id="messageRecipientType">
+              <option value="all">Alle Mitglieder</option>
+              <option value="single">Einzelnes Mitglied</option>
+            </select>
+
+            <div id="messageEmployeeGroup" class="message-target-group hidden">
+              <label for="messageEmployeeFilter">Mitglied wählen</label>
+              <select id="messageEmployeeFilter"></select>
+            </div>
+            <p id="messageRecipientCount" class="hint">Empfänger: Alle Mitglieder</p>
+
+            <label for="messageText">Nachricht</label>
+            <textarea id="messageText" rows="4"></textarea>
+            <button id="sendMessage" type="button">Senden</button>
+          </div>
+
+          <div id="hireForm" class="action-form hidden">
+            <div class="action-form-header">
+              <h3>Mitglied hinzufügen</h3>
+              <button type="button" class="action-form-close" data-close-form aria-label="Formular schließen">✕</button>
+            </div>
+            <form>
+              <label for="hireName">Name</label>
+              <input id="hireName" type="text" required />
+              <label for="hireUsername">Benutzername</label>
+              <input id="hireUsername" type="text" required />
+              <label for="hirePassword">Passwort</label>
+              <input id="hirePassword" type="password" required />
+              <label for="hireRank">Rang</label>
+              <select id="hireRank"></select>
+              <button id="hireEmployee" type="button">Hinzufügen</button>
+            </form>
+          </div>
+
+          <div id="promoteForm" class="action-form hidden">
+            <div class="action-form-header">
+              <h3>Beförderung / Degradierung</h3>
+              <button type="button" class="action-form-close" data-close-form aria-label="Formular schließen">✕</button>
+            </div>
+            <label for="promoteRank">Neuer Rang</label>
+            <select id="promoteRank"></select>
+            <button id="promoteEmployee" type="button">Speichern</button>
+          </div>
+
+          <div id="fireForm" class="action-form hidden">
+            <div class="action-form-header">
+              <h3>Mitglied Entfernen</h3>
+              <button type="button" class="action-form-close" data-close-form aria-label="Formular schließen">✕</button>
+            </div>
+            <p>Das Mitglied und seine Anmeldedaten werden gelöscht.</p>
+            <button id="fireEmployee" type="button" class="danger">Entfernen</button>
+          </div>
+
+          <div class="employee-list" id="employeeList"></div>
+        </section>
+
+        <section id="inventoryPage" class="page hidden">
+          <h2>Lagerbestand</h2>
+          <div class="card-grid">
+            <div class="card inventory-card">
+              <div class="page-headline">
+                <div>
+                  <h3>Bestände verwalten</h3>
+                  <p>Artikel hinzufügen, Bestand anpassen und schnell prüfen.</p>
+                </div>
+              </div>
+              <div class="inventory-controls">
+                <label for="inventoryName">Artikel</label>
+                <input id="inventoryName" type="text" placeholder="Artikelname" />
+                <div class="inventory-input-row">
+                  <div class="inventory-field-group">
+                    <label for="inventoryQuantity">Menge</label>
+                    <input id="inventoryQuantity" type="number" min="1" value="1" />
+                  </div>
+                    <button id="addInventoryItem" type="button" class="primary">Hinzufügen</button>
+                    <button id="manageInventoryCategories" type="button" class="secondary">Kategorien verwalten</button>
+                </div>
+              </div>
+              <div id="inventoryList" class="inventory-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="todoPage" class="page hidden">
+          <h2>To-do Liste</h2>
+          <div class="card-grid">
+            <div class="card todo-card">
+              <div class="page-headline">
+                <div>
+                  <h3>Aufgaben planen</h3>
+                  <p>Neue Aufgaben erstellen, Prioritäten setzen und Fälligkeit im Blick behalten.</p>
+                </div>
+              </div>
+              <div class="todo-controls">
+                <label for="todoText">Aufgabe</label>
+                <input id="todoText" type="text" placeholder="Neue Aufgabe" />
+                <div class="todo-fields-row">
+                  <div>
+                    <label for="todoPriority">Priorität</label>
+                    <select id="todoPriority">
+                      <option value="Hoch">Hoch</option>
+                      <option value="Normal" selected>Normal</option>
+                      <option value="Niedrig">Niedrig</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="todoDueDate">Fällig</label>
+                    <input id="todoDueDate" type="date" />
+                  </div>
+                </div>
+                <button id="addTodoItem" type="button" class="primary">Hinzufügen</button>
+                <button id="manageTodoCategories" type="button" class="secondary">Kategorien verwalten</button>
+              </div>
+              <div id="todoList" class="todo-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="reportsPage" class="page hidden">
+          <h2>Berichte</h2>
+          <div class="card">
+            <label for="reportUpload">Datei hochladen</label>
+            <input id="reportUpload" type="file" />
+          </div>
+          <div class="table-card">
+            <table>
+              <thead>
+                <tr><th>Dateiname</th><th>Hochgeladen</th><th>Aktionen</th></tr>
+              </thead>
+              <tbody id="reportList"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="logPage" class="page hidden">
+          <h2>Logs</h2>
+          <div class="card log-card">
+            <div class="page-headline">
+              <div>
+                <h3>Entscheidung und Aktion</h3>
+                <p>Nur für Häuptling sichtbare Protokolle aller wichtigen Veränderungen.</p>
+              </div>
+              <button type="button" id="deleteAllLogs" class="danger">Alle Logs löschen</button>
+            </div>
+            <div class="table-card">
+              <table class="log-table">
+                <thead>
+                  <tr>
+                    <th>Zeit</th>
+                    <th>Aktion</th>
+                    <th>Benutzer</th>
+                    <th>Details</th>
+                    <th>Aktionen</th>
+                  </tr>
+                </thead>
+                <tbody id="logList"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="database.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

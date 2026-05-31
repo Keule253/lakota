@@ -1,4 +1,4 @@
-const RANKS = ['Häuptling', 'Schamane', '1. Krieger', 'Krieger', 'Heiler'];
+const RANKS = ['Häuptling', 'Schamane', '1. Krieger', 'Krieger', 'Heiler', 'Anwärter'];
 const STATUSES = ['Wach', 'Schlafen'];
 
 const PERMISSIONS = {
@@ -6,7 +6,8 @@ const PERMISSIONS = {
   'Schamane': { hire: false, transfer: true, message: true, promote: false, sanction: false, fire: false, statusChange: true },
   '1. Krieger': { hire: false, transfer: true, message: true, promote: false, sanction: false, fire: false, statusChange: true },
   'Krieger': { hire: false, transfer: true, message: true, promote: false, sanction: false, fire: false, statusChange: false },
-  'Heiler': { hire: false, transfer: false, message: true, promote: false, sanction: false, fire: false, statusChange: false }
+  'Heiler': { hire: false, transfer: false, message: true, promote: false, sanction: false, fire: false, statusChange: false },
+  'Anwärter': { hire: false, transfer: false, message: true, promote: false, sanction: false, fire: false, statusChange: false }
 };
 
 const STORAGE_KEYS = {
@@ -74,8 +75,16 @@ const accountPanel = document.getElementById('accountPanel');
 const closeAccountPanel = document.getElementById('closeAccountPanel');
 const accountUserName = document.getElementById('accountUserName');
 const accountUserRank = document.getElementById('accountUserRank');
-const accountUserStatus = document.getElementById('accountUserStatus');
-const openDashboardPage = document.getElementById('openDashboardPage');
+const accountStatusSelect = document.getElementById('accountStatusSelect');
+const changePasswordBtn = document.getElementById('changePasswordBtn');
+const logoutAccountBtn = document.getElementById('logoutAccountBtn');
+const changePasswordModal = document.getElementById('changePasswordModal');
+const closeChangePasswordModal = document.getElementById('closeChangePasswordModal');
+const changePasswordForm = document.getElementById('changePasswordForm');
+const currentPasswordInput = document.getElementById('currentPasswordInput');
+const newPasswordInput = document.getElementById('newPasswordInput');
+const confirmPasswordInput = document.getElementById('confirmPasswordInput');
+const passwordError = document.getElementById('passwordError');
 const messageRecipientType = document.getElementById('messageRecipientType');
 const messageEmployeeFilter = document.getElementById('messageEmployeeFilter');
 const messageEmployeeGroup = document.getElementById('messageEmployeeGroup');
@@ -1310,7 +1319,7 @@ function initializeAccountUI() {
   currentUserName.textContent = `${currentUser.name} (${currentUser.rank})`;
   if (accountUserName) accountUserName.textContent = currentUser.name;
   if (accountUserRank) accountUserRank.textContent = `Rang: ${currentUser.rank}`;
-  if (accountUserStatus) accountUserStatus.textContent = `Status: ${currentUser.status || 'Unbekannt'}`;
+  if (accountStatusSelect) accountStatusSelect.value = currentUser.status || 'Wach';
   updateLogNavVisibility();
 }
 
@@ -1318,7 +1327,7 @@ function renderAccountPanel() {
   if (!currentUser || !accountPanel) return;
   if (accountUserName) accountUserName.textContent = currentUser.name;
   if (accountUserRank) accountUserRank.textContent = `Rang: ${currentUser.rank}`;
-  if (accountUserStatus) accountUserStatus.textContent = `Status: ${currentUser.status || 'Unbekannt'}`;
+  if (accountStatusSelect) accountStatusSelect.value = currentUser.status || 'Wach';
 }
 
 function updateLoginState() {
@@ -1499,15 +1508,101 @@ if (closeAccountPanel) {
   });
 }
 
-if (openDashboardPage) {
-  openDashboardPage.addEventListener('click', () => {
-    showPage('dashboardPage');
-    if (accountPanel) {
-      accountPanel.classList.remove('visible');
-      accountPanel.classList.add('hidden');
+if (accountStatusSelect) {
+  accountStatusSelect.addEventListener('change', () => {
+    currentUser.status = accountStatusSelect.value;
+    dbSet(STORAGE_KEYS.currentUser, currentUser);
+    renderAccountPanel();
+    renderAllEmployeeViews();
+  });
+}
+
+if (changePasswordBtn) {
+  changePasswordBtn.addEventListener('click', (event) => {
+    event.preventDefault();
+    if (changePasswordModal) {
+      changePasswordModal.classList.remove('hidden');
+      changePasswordModal.classList.add('visible');
     }
   });
 }
+
+if (logoutAccountBtn) {
+  logoutAccountBtn.addEventListener('click', () => {
+    currentUser = null;
+    dbSet(STORAGE_KEYS.currentUser, null);
+    accountPanel.classList.remove('visible');
+    accountPanel.classList.add('hidden');
+    updateLoginState();
+  });
+}
+
+if (closeChangePasswordModal) {
+  closeChangePasswordModal.addEventListener('click', () => {
+    if (changePasswordModal) {
+      changePasswordModal.classList.remove('visible');
+      changePasswordModal.classList.add('hidden');
+    }
+    changePasswordForm.reset();
+    if (passwordError) passwordError.textContent = '';
+  });
+}
+
+if (changePasswordForm) {
+  changePasswordForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const currentPwd = currentPasswordInput.value.trim();
+    const newPwd = newPasswordInput.value.trim();
+    const confirmPwd = confirmPasswordInput.value.trim();
+
+    if (passwordError) passwordError.textContent = '';
+
+    if (!currentPwd || !newPwd || !confirmPwd) {
+      if (passwordError) passwordError.textContent = 'Alle Felder sind erforderlich.';
+      return;
+    }
+
+    if (currentUser.password !== currentPwd) {
+      if (passwordError) passwordError.textContent = 'Aktuelles Passwort ist falsch.';
+      return;
+    }
+
+    if (newPwd.length < 4) {
+      if (passwordError) passwordError.textContent = 'Neues Passwort muss mindestens 4 Zeichen lang sein.';
+      return;
+    }
+
+    if (newPwd !== confirmPwd) {
+      if (passwordError) passwordError.textContent = 'Passwörter stimmen nicht überein.';
+      return;
+    }
+
+    currentUser.password = newPwd;
+    dbSet(STORAGE_KEYS.currentUser, currentUser);
+    
+    const employeeIndex = employees.findIndex(e => e.id === currentUser.id);
+    if (employeeIndex !== -1) {
+      employees[employeeIndex].password = newPwd;
+      dbSet(STORAGE_KEYS.employees, employees);
+    }
+
+    if (passwordError) passwordError.textContent = 'Passwort erfolgreich geändert!';
+    if (passwordError) passwordError.style.color = 'var(--success)';
+    
+    setTimeout(() => {
+      changePasswordForm.reset();
+      if (changePasswordModal) {
+        changePasswordModal.classList.remove('visible');
+        changePasswordModal.classList.add('hidden');
+      }
+      if (passwordError) {
+        passwordError.textContent = '';
+        passwordError.style.color = 'var(--danger)';
+      }
+    }, 1500);
+  });
+}
+
 
 document.addEventListener('click', (event) => {
   const markReadButton = event.target.closest('.notification-mark-read');

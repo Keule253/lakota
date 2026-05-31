@@ -26,7 +26,7 @@
     <header class="app-header">
       <div>
         <h1>Lakota</h1>
-        <p id="headerSubtitle">Verwalte Mitglieder, Lagerbestand, Aufgaben, Berichte und Logs.</p>
+        <p id="headerSubtitle">Verwalte Mitglieder, Lagerbestand, Aufgaben, Berichte und Häuptling-Logs.</p>
       </div>
       <div class="user-panel">
         <button id="notificationBell" type="button" class="notification-bell" aria-label="Mitteilungen">
@@ -70,8 +70,34 @@
       <div class="account-panel-content">
         <p id="accountUserName"></p>
         <p id="accountUserRank"></p>
-        <p id="accountUserStatus"></p>
-        <button id="openDashboardPage" type="button" class="primary">Zum Dashboard</button>
+        <div class="account-panel-status">
+          <label for="accountStatusSelect">Status:</label>
+          <select id="accountStatusSelect">
+            <option value="Wach">Wach</option>
+            <option value="Schlafen">Schlafen</option>
+          </select>
+        </div>
+        <button id="changePasswordBtn" type="button">Passwort ändern</button>
+        <button id="logoutAccountBtn" type="button" class="danger">Abmelden</button>
+      </div>
+    </div>
+
+    <div id="changePasswordModal" class="account-panel hidden">
+      <div class="account-panel-header">
+        <span>Passwort ändern</span>
+        <button id="closeChangePasswordModal" class="account-panel-close" type="button" aria-label="Schließen">✕</button>
+      </div>
+      <div class="account-panel-content">
+        <form id="changePasswordForm">
+          <label for="currentPasswordInput">Aktuelles Passwort</label>
+          <input id="currentPasswordInput" type="password" required />
+          <label for="newPasswordInput">Neues Passwort</label>
+          <input id="newPasswordInput" type="password" required />
+          <label for="confirmPasswordInput">Passwort bestätigen</label>
+          <input id="confirmPasswordInput" type="password" required />
+          <p id="passwordError" class="error"></p>
+          <button type="submit" class="primary">Passwort ändern</button>
+        </form>
       </div>
     </div>
 
